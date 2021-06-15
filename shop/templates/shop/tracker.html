@@ -1,0 +1,84 @@
+{% extends 'shop/basic.html' %}
+{% block title %}SHOP-Tracker{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="col my-4">
+        <h2>Enter your order Id and Email address to track your order.</h2>
+        <form method="post" action="#" id="trackerForm">{% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="orderId">Order Id</label>
+                    <input type="text" class="form-control" name="orderId" id="orderId"
+                        placeholder="Enter Your order id">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter Your Email">
+                </div>
+                <button type="submit" class="btn btn-primary">Track Order</button>
+            </div>
+    </div>
+    <div class="col my-4">
+        <h2>Your Order Status</h2>
+        <div class="my-4">
+            <ul class="list-group" id="items">
+                Enter your order id and email and click on track your order!
+            </ul>
+        </div>
+        <h2>Your Order Details</h2>
+        <div class="my-4">
+            <ul class="list-group" id="citems">
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    $('#trackerForm').submit(function (event) {
+        $('#items').empty(); //empty the items in refreshing
+        var formData = {
+            'orderId': $('input[name=orderId]').val(),
+            'email': $('input[name=email]').val(),
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+        };
+        $.ajax({
+            type: 'POST',
+            url: '/shop/tracker/',
+            data: formData,
+            encode: true
+        })
+            .done(function (data) {
+                $('#citems').empty(); //empty the items in refreshing
+                data = JSON.parse(data);
+                // console.log(data);
+                // console.log(updates)
+                if (data['status'] == 'success') { //only works if get the success
+                    updates = data['updates']; //access the update details
+                    for (i = 0; i < updates.length; i++) {
+                        let text = updates[i]['text'];
+                        let time = updates[i]['time'];
+                        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">${text}<span class = "badge badge-primary badge-pill">${time}</span></li>`
+                        $('#items').append(mystr);
+                    }
+                    //fill in the order details if get the status success 
+                    cart = JSON.parse(data['itemjson']); //access the dictionary itemjson from views.py
+                    console.log(cart);
+                    for (item in cart) {
+                        let name = cart[item][1];
+                        let qty = cart[item][0];
+                        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">${name}<span class = "badge badge-primary badge-pill">${qty}</span></li>`
+                        $('#citems').append(mystr);
+                    }
+                }
+                else {
+                    mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">Sorry, We are not able to fetch this order id and email.make sure to enter correct order id and email.</li>`
+                    $('#items').append(mystr); //append the message of no data
+                    $('#citems').append(mystr); //append the message of no data
+                }
+
+            });
+        event.preventDefault();//this is use to stop the page refreshing.
+    });
+</script>
+{% endblock %}

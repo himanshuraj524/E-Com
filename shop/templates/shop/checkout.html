@@ -1,0 +1,103 @@
+{% extends 'shop/basic.html' %}
+{% block title %}CheckOut{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="col my-4">
+        <h2>Step 1 - SHOP Express Checkout - Review Your Cart Items.</h2>
+        <div class="my-4">
+            <ul class="list-group" id="items">
+            </ul>
+        </div>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active">Total price of your products is <b>Rs.<span id="totalPrice"></span></b> please enter the details below to place order.</li>
+        </ol>
+    </div>
+    <div class="col my-4">
+        <h2>Step 2 - Enter CheckOut Details:</h2>
+        <form method="POST" action="/shop/checkout/"> {% csrf_token%}
+            <input type="hidden" name="itemsJson" id="itemsJson">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="name">Name.</label>
+                    <input type="name" class="form-control" id="name" name="name" placeholder="Please Enter Your Name">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="email">Email.</label>
+                    <input type="email" class="form-control" id="email" name="email"
+                        placeholder="Please Enter Your Email">
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="address1">Address.</label>
+                <input type="text" class="form-control" id="address1" name="address1"
+                    placeholder="Please Enter Your Address">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="address2">Address line 2.</label>
+                <input type="text" class="form-control" id="address2" name="address2"
+                    placeholder="Please Enter Your Complete Address">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="city">City.</label>
+                    <input type="text" class="form-control" id="city" name="city" placeholder="Enter Your City">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="state">State.</label>
+                    <input type="text" class="form-control" id="state" name="state" placeholder="Enter Your State.">
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="pin_code">Pincode.</label>
+                    <input type="number" class="form-control" id="pin_code" name="pin_code" placeholder="Enter Pincode">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="phone">PhoneNumber.</label>
+                <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter Your Phone Number">
+            </div>
+            <button type="submit" class="btn btn-primary">Place Order</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    // javascript for checking item in cart
+    // Find out the cart items from localStorage
+    if (localStorage.getItem('cart') == null) {
+        var cart = {}
+    }
+    else {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        document.getElementById('cart').innerHTML = Object.keys(cart).length;
+    }
+    console.log(cart);
+    var sum = 0;
+    var totalPrice = 0;
+    if ($.isEmptyObject(cart)) {
+        //if object is empty
+        myStr = `<p>Your Cart is Empty, please add some items in your cart before checking out!</p>`
+        $('#items').append(myStr);
+    }
+    else {
+        for (item in cart) {
+            let qty = cart[item][0];
+            let name = cart[item][1];
+            let price = cart[item][2];
+            sum = sum + qty;
+            totalPrice = totalPrice + qty * price;
+            mySrt = `<li class="list-group-item d-flex justify-content-between align-items-center">${name}<span class = "badge badge-primary badge-pill">${qty}</span></li>`
+            $('#items').append(mySrt);
+        }
+    }
+    document.getElementById('cart').innerHTML = sum;
+    document.getElementById('totalPrice').innerHTML = totalPrice;
+    $('#itemsJson').val(JSON.stringify(cart));
+    //the error is because of vscode the code below is working fine.
+    {% if thank %}
+    alert('Thanks For Ordering With Us.Your Order ID Is {{id}}.Use It To Track Your Order Using Our Order Traker.');
+    localStorage.clear();
+    document.location = "/shop";
+    {% endif %}
+</script>
+{% endblock %}
